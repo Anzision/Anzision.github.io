@@ -65,16 +65,16 @@
                 alert("請選擇檔案");
                 return;
             }
-
+        
             const formData = new FormData();
-            selectedFiles.forEach(file => formData.append("files", file));
-
+            selectedFiles.forEach(file => formData.append("files[]", file)); // ✅ 改成 "files[]" 確保陣列格式
+        
             try {
                 let response = await fetch(uploadUrl, {
                     method: "POST",
                     body: formData
                 });
-
+        
                 let result = await response.json();
                 if (result.success) {
                     let message = `上傳成功！\n${result.files.map(f => `${f.name}: ${f.url}`).join("\n")}`;
@@ -82,12 +82,13 @@
                     alert("已發送到聊天室！");
                     liff.closeWindow();
                 } else {
-                    alert("上傳失敗");
+                    alert("上傳失敗：" + result.error);
                 }
             } catch (error) {
                 console.error("上傳錯誤", error);
             }
         });
+
 
         initializeLiff();
     </script>
