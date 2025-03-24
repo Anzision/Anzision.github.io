@@ -3,55 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFF 檔案上傳測試</title>
+    <title>LINE LIFF 檔案上傳</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        #dropArea {
+            border: 2px dashed #aaa;
+            padding: 20px;
+            margin: 20px auto;
+            width: 300px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+        #fileList { margin-top: 10px; text-align: left; }
+        button { margin-top: 10px; padding: 10px 20px; }
+    </style>
 </head>
 <body>
-    <h2>上傳檔案並發送名稱到聊天室</h2>
-    <input type="file" id="fileInput">
-    <button onclick="uploadFile()">上傳</button>
+    <h2>上傳檔案</h2>
+    <div id="dropArea">拖放檔案到此 或 點擊選擇</div>
+    <input type="file" id="fileInput" multiple style="display: none;">
+    <div id="fileList"></div>
+    <button id="uploadBtn">確認上傳</button>
 
     <script>
-        const liffId = "2007096034-Vz5PxzjR";  // 請填入你的 LIFF ID
+        const liffId = "2007096034-Vz5PxzjR"; // 替換成你的 LIFF ID
+        const uploadUrl = "https://script.google.com/macros/s/AKfycbzsORmSnktJn4Z8Sps9LpQ7WLGUlEL8kWWawF294abiT21ih2fdT5eQEWDoEl1zagHm/exec"; // 替換成你的 GAS 網址
+        let selectedFiles = [];
 
         async function initializeLiff() {
-            try {
-                await liff.init({ liffId });
-                console.log("LIFF 初始化成功");
-            } catch (error) {
-                console.error("LIFF 初始化失敗", error);
-            }
+            await liff.init({ liffId });
         }
 
-        async function uploadFile() {
-            const fileInput = document.getElementById("fileInput");
-            if (fileInput.files.length === 0) {
-                alert("請選擇一個檔案");
+        document.getElementById("dropArea").addEventListener("click", () => {
+            document.getElementById("fileInput").click();
+        });
+
+        document.getElementById("fileInput").addEventListener("change", (event) => {
+            handleFiles(event.target.files);
+        });
+
+        document.getElementById("dropArea").addEventListener("dragover", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+
+        document.getElementById("dropArea").addEventListener("drop", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handleFiles(event.dataTransfer.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            const fileListDiv = document.getElementById("fileList");
+            fileListDiv.innerHTML = selectedFiles.map(file => `<p>${file.name}</p>`).join("");
+        }
+
+        document.getElementById("uploadBtn").addEventListener("click", async () => {
+            if (selectedFiles.length === 0) {
+                alert("請選擇檔案");
                 return;
             }
 
-            const file = fileInput.files[0]; 
-            const fileName = file.name; 
-
-            if (!liff.isLoggedIn()) {
-                liff.login();
-                return;
-            }
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append("files", file));
 
             try {
-                await liff.sendMessages([
-                    {
-                        type: "text",
-                        text: `你上傳的檔案名稱是：${fileName}`
-                    }
-                ]);
-                alert("訊息已發送！");
-            } catch (error) {
-                console.error("發送訊息失敗", error);
-            }
-        }
+                let response = await fetch(uploadUrl, {
+                    method: "POST",
+                    body: formData
+                });
 
-        window.onload = initializeLiff;
+                let result = await response.json();
+                if (result.success) {
+                    let message = `上傳成功！\n${result.files.map(f => `${f.name}: ${f.url}`).join("\n")}`;
+                    await liff.sendMessages([{ type: "text", text: message }]);
+                    alert("已發送到聊天室！");
+                    liff.closeWindow();
+                } else {
+                    alert("上傳失敗");
+                }
+            } catch (error) {
+                console.error("上傳錯誤", error);
+            }
+        });
+
+        initializeLiff();
     </script>
 </body>
 </html>
