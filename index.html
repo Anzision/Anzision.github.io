@@ -3,49 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LIFF 測試</title>
+    <title>LIFF 檔案上傳測試</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-        img { border-radius: 50%; width: 100px; height: 100px; }
-        #userInfo { margin-top: 20px; }
-    </style>
 </head>
 <body>
-    <h2>LIFF 使用者資訊</h2>
-    <div id="userInfo">
-        <p style="color:red;">初始化中...</p>
-    </div>
+    <h2>上傳檔案並發送名稱到聊天室</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">上傳</button>
 
     <script>
-        const liffId = "2007096034-Vz5PxzjR"; // 替換成你的 LIFF ID
+        const liffId = "2007096034-Vz5PxzjR";  // 請填入你的 LIFF ID
 
         async function initializeLiff() {
             try {
-                console.log("🔄 LIFF 初始化中...");
                 await liff.init({ liffId });
-
-                if (!liff.isLoggedIn()) {
-                    console.log("🔑 使用者未登入，跳轉登入...");
-                    liff.login();
-                    return;
-                }
-
-                console.log("✅ LIFF 初始化成功，取得使用者資料...");
-                const profile = await liff.getProfile();
-
-                document.getElementById("userInfo").innerHTML = `
-                    <img src="${profile.pictureUrl}" alt="User Image">
-                    <p><strong>名稱：</strong> ${profile.displayName}</p>
-                    <p><strong>User ID：</strong> ${profile.userId}</p>
-                `;
-
+                console.log("LIFF 初始化成功");
             } catch (error) {
-                console.error("❌ LIFF 初始化失敗", error);
-                document.getElementById("userInfo").innerHTML = `<p style="color:red;">LIFF 無法載入</p>`;
+                console.error("LIFF 初始化失敗", error);
             }
         }
-        
+
+        async function uploadFile() {
+            const fileInput = document.getElementById("fileInput");
+            if (fileInput.files.length === 0) {
+                alert("請選擇一個檔案");
+                return;
+            }
+
+            const file = fileInput.files[0]; 
+            const fileName = file.name; 
+
+            if (!liff.isLoggedIn()) {
+                liff.login();
+                return;
+            }
+
+            try {
+                await liff.sendMessages([
+                    {
+                        type: "text",
+                        text: `你上傳的檔案名稱是：${fileName}`
+                    }
+                ]);
+                alert("訊息已發送！");
+            } catch (error) {
+                console.error("發送訊息失敗", error);
+            }
+        }
+
         window.onload = initializeLiff;
     </script>
 </body>
