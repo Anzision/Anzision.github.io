@@ -67,12 +67,12 @@
             }
         
             const formData = new FormData();
-            selectedFiles.forEach(file => formData.append("files[]", file)); // ✅ 改成 "files[]" 確保陣列格式
+            selectedFiles.forEach(file => formData.append("files", file)); // ✅ 確保 GAS 能讀到
         
             try {
                 let response = await fetch(uploadUrl, {
                     method: "POST",
-                    body: formData
+                    body: formData,
                 });
         
                 let result = await response.json();
@@ -88,6 +88,7 @@
                 console.error("上傳錯誤", error);
             }
         });
+
 
 
         initializeLiff();
