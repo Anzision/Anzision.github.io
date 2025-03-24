@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://*.line.me;">
-    <title>LIFF 用戶資訊</title>
+    <title>LIFF 測試</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
@@ -13,46 +12,40 @@
     </style>
 </head>
 <body>
-    <h2>LIFF 用戶資訊</h2>
+    <h2>LIFF 使用者資訊</h2>
     <div id="userInfo">
-        <p>載入中...</p>
+        <p style="color:red;">初始化中...</p>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/vconsole@3.2.0/dist/vconsole.min.js"></script>
+
     <script>
-      var vConsole = new VConsole();
-    </script>
-    <script>
-        const liffId = "2007096034-Vz5PxzjR"; // 替換成你的 LIFF ID
+        const liffId = "你的 LIFF ID"; // 替換成你的 LIFF ID
 
         async function initializeLiff() {
-          console.log("初始化 LIFF...");
-          document.getElementById("userInfo").innerHTML = `<p style="color:red;">初始化 LIFF...</p>`;
-          try {
-              await liff.init({
-    liffId: liffId, // 從LIFF頁面中拿到的ID
-  });
+            try {
+                console.log("🔄 LIFF 初始化中...");
+                await liff.init({ liffId });
 
-              console.log("LIFF 初始化成功");
-              document.getElementById("userInfo").innerHTML = `<p style="color:red;">LIFF 初始化成功</p>`;
+                if (!liff.isLoggedIn()) {
+                    console.log("🔑 使用者未登入，跳轉登入...");
+                    liff.login();
+                    return;
+                }
 
-              console.log("取得用戶資訊中...");
-              document.getElementById("userInfo").innerHTML = `<p style="color:red;">取得用戶資訊中...</p>`;
-              const profile = await liff.getProfile();
+                console.log("✅ LIFF 初始化成功，取得使用者資料...");
+                const profile = await liff.getProfile();
 
-              console.log("用戶資訊取得成功", profile);
-              document.getElementById("userInfo").innerHTML = `<p style="color:red;">用戶資訊取得成功</p>`;
+                document.getElementById("userInfo").innerHTML = `
+                    <img src="${profile.pictureUrl}" alt="User Image">
+                    <p><strong>名稱：</strong> ${profile.displayName}</p>
+                    <p><strong>User ID：</strong> ${profile.userId}</p>
+                `;
 
-              document.getElementById("userInfo").innerHTML = `
-                  <img src="${profile.pictureUrl}" alt="User Image">
-                  <p><strong>名稱：</strong> ${profile.displayName}</p>
-                  <p><strong>User ID：</strong> ${profile.userId}</p>
-              `;
-          } catch (error) {
-              console.error("LIFF 初始化失敗", error);
-              document.getElementById("userInfo").innerHTML = `<p style="color:red;">無法取得用戶資訊</p>`;
-          }
+            } catch (error) {
+                console.error("❌ LIFF 初始化失敗", error);
+                document.getElementById("userInfo").innerHTML = `<p style="color:red;">LIFF 無法載入</p>`;
+            }
         }
-
+        
         window.onload = initializeLiff;
     </script>
 </body>
